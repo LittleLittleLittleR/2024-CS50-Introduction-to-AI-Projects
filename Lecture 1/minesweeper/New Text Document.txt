@@ -1,0 +1,33 @@
+self.moves_made.add(cell)
+        self.mark_safe(cell)
+
+        potential_mines = []
+        potential_count = count
+        offset = ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1))
+
+        for x in offset:
+            row = cell[0] + x[0]
+            column = cell[1] + x[1]
+            newcell = (row, column)
+            if newcell in self.mines:
+                potential_count -= 1
+            elif 0 <= row < self.height and 0 <= column < self.width and not(newcell in self.mines or newcell in self.safes):
+                potential_mines.append(newcell)
+
+        new_s = Sentence(potential_mines, potential_count)
+        self.knowledge.append(new_s)
+
+        for s in self.knowledge:
+            for mine in s.known_mines().copy():
+                self.mark_mine(mine)
+            for safe in s.known_safes().copy():
+                self.mark_safe(safe)
+
+
+        if new_s.count > 0:
+            for s in self.knowledge:
+                if not(s.count > 0) or new_s.cells == s.cells:
+                    continue
+                elif new_s.cells.issubset(s.cells):
+                    diff = list(new_s.cells.difference(s.cells))
+                    self.knowledge.append(Sentence(diff, s.count-new_s.count))
